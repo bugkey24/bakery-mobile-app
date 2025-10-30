@@ -1,30 +1,41 @@
 // lib/main.dart
-
+// Hapus import DatabaseService jika ada
 import 'package:bakery_app/providers/auth_provider.dart';
-import 'package:bakery_app/screens/splash_screen.dart'; // Kita akan buat ini
+import 'package:bakery_app/providers/product_provider.dart';
+import 'package:bakery_app/providers/cart_provider.dart';
+import 'package:bakery_app/providers/order_provider.dart';
+import 'package:bakery_app/screens/splash_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Untuk SystemChrome (Full Screen)
-import 'package:google_fonts/google_fonts.dart'; // Untuk Font Bersih
+import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
-// Fungsi main() adalah gerbang utama
-Future<void> main() async {
-  // Pastikan semua binding Flutter siap sebelum menjalankan UI
-  WidgetsFlutterBinding.ensureInitialized();
+// Palet Warna 
+const kPrimaryColor = Color(0xFFF7C548);
+const kPrimaryDarkColor = Color(0xFFE6A919);
+const kBackgroundColor = Color(0xFFFCFCFC);
+const kTextDarkColor = Color(0xFF222222);
+const kTextLightColor = Color(0xFF7A7A7A);
 
-  // --- PENGATURAN FULL SCREEN (UI/UX) ---
-  // Membuat status bar transparan
+Future<void> main() async {
+  // Hanya ensureInitialized dan SystemChrome
+  WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent, // Transparan
-      statusBarIconBrightness: Brightness.dark, // Ikon (jam, baterai) jadi gelap
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
     ),
   );
 
-  // Jalankan aplikasi dengan mendaftarkan Provider kita
+  // Tanpa await database
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => AuthProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => AuthProvider()),
+        ChangeNotifierProvider(create: (context) => ProductProvider()),
+        ChangeNotifierProvider(create: (context) => CartProvider()),
+        ChangeNotifierProvider(create: (context) => OrderProvider()),
+      ],
       child: const MyApp(),
     ),
   );
@@ -35,56 +46,85 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // --- TEMA MINIMALIS (UI/UX) ---
-    final minimalistTheme = ThemeData(
-      // Warna utama
-      primarySwatch: Colors.brown, // Anda bisa ganti ini
-      scaffoldBackgroundColor: Colors.white, // Latar belakang putih bersih
-
-      // Tipografi Bersih (dari Google Fonts)
-      textTheme: GoogleFonts.poppinsTextTheme(Theme.of(context).textTheme),
-
-      // Tema untuk Text Field (Input)
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: Colors.grey[50], // Warna isian yang sangat terang
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.0),
-          borderSide: BorderSide.none, // Tidak ada border tebal
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.0),
-          borderSide: BorderSide(color: Colors.brown.shade400), // Border saat di-klik
-        ),
+    // Tema baru tetap digunakan
+    final newTheme = ThemeData(
+      primaryColor: kPrimaryColor,
+      scaffoldBackgroundColor: kBackgroundColor,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: kPrimaryColor,
+        primary: kPrimaryColor,
+        secondary: kPrimaryDarkColor,
+        brightness: Brightness.light,
       ),
-
-      // Tema untuk Tombol (Button)
+      textTheme: GoogleFonts.interTextTheme(
+        Theme.of(context).textTheme,
+      ).apply(bodyColor: kTextDarkColor, displayColor: kTextDarkColor),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.brown, // Warna tombol
-          foregroundColor: Colors.white, // Warna teks di tombol
+          backgroundColor: kPrimaryColor,
+          foregroundColor: Colors.black,
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12.0),
           ),
-          elevation: 0, // Tidak ada bayangan, lebih minimalis
-          textStyle: GoogleFonts.poppins(
+          elevation: 2,
+          textStyle: GoogleFonts.inter(
             fontWeight: FontWeight.w600,
             fontSize: 16,
           ),
+          disabledBackgroundColor:
+              Colors.grey.shade300, // Warna background saat disabled
+          disabledForegroundColor:
+              Colors.grey.shade500, // Warna teks/ikon saat disabled
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.0),
+          borderSide: BorderSide(color: Colors.grey.shade200),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.0),
+          borderSide: BorderSide(color: Colors.grey.shade200),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.0),
+          borderSide: const BorderSide(color: kPrimaryColor, width: 2.0),
+        ),
+        labelStyle: const TextStyle(color: kTextLightColor),
+      ),
+      cardTheme: CardThemeData(
+        elevation: 1.0,
+        color: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.0),
+          side: BorderSide(color: Colors.grey.shade100, width: 1),
+        ),
+      ),
+      appBarTheme: AppBarTheme(
+        elevation: 0,
+        backgroundColor: kBackgroundColor,
+        foregroundColor: kTextDarkColor,
+        centerTitle: true,
+        titleTextStyle: GoogleFonts.inter(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          color: kTextDarkColor,
         ),
       ),
     );
-    // --- AKHIR DARI TEMA ---
 
     return MaterialApp(
       title: 'Bakery App',
-      theme: minimalistTheme, // Terapkan tema kita
-      debugShowCheckedModeBanner: false, // Hilangkan banner "DEBUG"
-      
-      // Kita mulai dari SplashScreen
-      // SplashScreen akan memeriksa status login (UX yang baik)
-      home: const SplashScreen(), 
+      theme: newTheme,
+      debugShowCheckedModeBanner: false,
+      home: const SplashScreen(),
     );
   }
 }
